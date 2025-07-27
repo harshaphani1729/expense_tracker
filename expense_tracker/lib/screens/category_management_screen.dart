@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:expense_tracker/models/category.dart';
-import 'package:expense_tracker/models/database_helper.dart';
+import 'package:expense_tracker/models/web_database_helper.dart';
 
 class CategoryManagementScreen extends StatefulWidget {
   const CategoryManagementScreen({Key? key}) : super(key: key);
@@ -10,7 +10,7 @@ class CategoryManagementScreen extends StatefulWidget {
 }
 
 class _CategoryManagementScreenState extends State<CategoryManagementScreen> {
-  final DatabaseHelper _databaseHelper = DatabaseHelper();
+  final WebDatabaseHelper _databaseHelper = WebDatabaseHelper();
   List<Category> _categories = [];
   bool _isLoading = true;
 

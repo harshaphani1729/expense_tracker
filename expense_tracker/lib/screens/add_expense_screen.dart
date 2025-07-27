@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:expense_tracker/models/expense.dart';
 import 'package:expense_tracker/models/category.dart';
-import 'package:expense_tracker/models/database_helper.dart';
+import 'package:expense_tracker/models/web_database_helper.dart';
 import 'package:expense_tracker/screens/category_management_screen.dart';
 import 'package:intl/intl.dart';
 
@@ -17,7 +17,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   final _titleController = TextEditingController();
   final _amountController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final DatabaseHelper _databaseHelper = DatabaseHelper();
+  final WebDatabaseHelper _databaseHelper = WebDatabaseHelper();
   
   String _selectedCategory = 'Food';
   DateTime _selectedDate = DateTime.now();
