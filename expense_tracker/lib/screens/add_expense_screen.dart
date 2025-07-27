@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:expense_tracker/models/expense.dart';
+import 'package:expense_tracker/models/category.dart';
+import 'package:expense_tracker/models/database_helper.dart';
+import 'package:expense_tracker/screens/category_management_screen.dart';
 import 'package:intl/intl.dart';
 
 class AddExpenseScreen extends StatefulWidget {
@@ -14,19 +17,33 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   final _titleController = TextEditingController();
   final _amountController = TextEditingController();
   final _descriptionController = TextEditingController();
+  final DatabaseHelper _databaseHelper = DatabaseHelper();
   
   String _selectedCategory = 'Food';
   DateTime _selectedDate = DateTime.now();
+  List<Category> _categories = [];
+  bool _isLoading = true;
 
-  final List<String> _categories = [
-    'Food',
-    'Transportation',
-    'Shopping',
-    'Entertainment',
-    'Bills',
-    'Health',
-    'Other'
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _loadCategories();
+  }
+  
+  Future<void> _loadCategories() async {
+    setState(() {
+      _isLoading = true;
+    });
+    
+    final categories = await _databaseHelper.getAllCategories();
+    setState(() {
+      _categories = categories;
+      _isLoading = false;
+      if (_categories.isNotEmpty) {
+        _selectedCategory = _categories.first.name;
+      }
+    });
+  }
 
   @override
   void dispose() {
@@ -114,23 +131,66 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                 },
               ),
               const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                value: _selectedCategory,
-                decoration: const InputDecoration(
-                  labelText: 'Category',
-                  border: OutlineInputBorder(),
-                ),
-                items: _categories.map((String category) {
-                  return DropdownMenuItem<String>(
-                    value: category,
-                    child: Text(category),
-                  );
-                }).toList(),
-                onChanged: (String? newValue) {
-                  setState(() {
-                    _selectedCategory = newValue!;
-                  });
-                },
+              Row(
+                children: [
+                  Expanded(
+                    child: _isLoading
+                        ? const LinearProgressIndicator()
+                        : DropdownButtonFormField<String>(
+                            value: _categories.any((cat) => cat.name == _selectedCategory) 
+                                ? _selectedCategory 
+                                : (_categories.isNotEmpty ? _categories.first.name : null),
+                            decoration: const InputDecoration(
+                              labelText: 'Category',
+                              border: OutlineInputBorder(),
+                            ),
+                            items: _categories.map((Category category) {
+                              return DropdownMenuItem<String>(
+                                value: category.name,
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: 30,
+                                      height: 30,
+                                      decoration: BoxDecoration(
+                                        color: Color(int.parse('0x${category.color}')),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          category.icon,
+                                          style: const TextStyle(fontSize: 16),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Text(category.name),
+                                  ],
+                                ),
+                              );
+                            }).toList(),
+                            onChanged: (String? newValue) {
+                              setState(() {
+                                _selectedCategory = newValue!;
+                              });
+                            },
+                          ),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    onPressed: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const CategoryManagementScreen(),
+                        ),
+                      );
+                      _loadCategories(); // Refresh categories after returning
+                    },
+                    icon: const Icon(Icons.settings),
+                    tooltip: 'Manage Categories',
+                  ),
+                ],
               ),
               const SizedBox(height: 16),
               InkWell(

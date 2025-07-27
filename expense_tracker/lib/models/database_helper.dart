@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'expense.dart';
+import 'category.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
@@ -20,8 +21,9 @@ class DatabaseHelper {
     String path = join(await getDatabasesPath(), 'expenses.db');
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
   }
 
@@ -36,6 +38,48 @@ class DatabaseHelper {
         description TEXT
       )
     ''');
+    
+    await db.execute('''
+      CREATE TABLE categories(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL UNIQUE,
+        icon TEXT NOT NULL,
+        color TEXT NOT NULL
+      )
+    ''');
+    
+    // Insert default categories
+    await _insertDefaultCategories(db);
+  }
+  
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute('''
+        CREATE TABLE categories(
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL UNIQUE,
+          icon TEXT NOT NULL,
+          color TEXT NOT NULL
+        )
+      ''');
+      await _insertDefaultCategories(db);
+    }
+  }
+  
+  Future<void> _insertDefaultCategories(Database db) async {
+    final defaultCategories = [
+      {'name': 'Food', 'icon': '🍔', 'color': 'FF4CAF50'},
+      {'name': 'Transportation', 'icon': '🚗', 'color': 'FF2196F3'},
+      {'name': 'Shopping', 'icon': '🛍️', 'color': 'FFE91E63'},
+      {'name': 'Entertainment', 'icon': '🎬', 'color': 'FF9C27B0'},
+      {'name': 'Bills', 'icon': '📄', 'color': 'FFFF5722'},
+      {'name': 'Health', 'icon': '🏥', 'color': 'FFF44336'},
+      {'name': 'Other', 'icon': '📦', 'color': 'FF607D8B'},
+    ];
+    
+    for (var category in defaultCategories) {
+      await db.insert('categories', category);
+    }
   }
 
   Future<int> insertExpense(Expense expense) async {
@@ -93,5 +137,64 @@ class DatabaseHelper {
       categoryTotals[row['category']] = row['total']?.toDouble() ?? 0.0;
     }
     return categoryTotals;
+  }
+  
+  // Category management methods
+  Future<int> insertCategory(Category category) async {
+    final db = await database;
+    return await db.insert('categories', category.toMap());
+  }
+  
+  Future<List<Category>> getAllCategories() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'categories',
+      orderBy: 'name ASC',
+    );
+    
+    return List.generate(maps.length, (i) {
+      return Category.fromMap(maps[i]);
+    });
+  }
+  
+  Future<int> updateCategory(Category category) async {
+    final db = await database;
+    return await db.update(
+      'categories',
+      category.toMap(),
+      where: 'id = ?',
+      whereArgs: [category.id],
+    );
+  }
+  
+  Future<int> deleteCategory(int id) async {
+    final db = await database;
+    // First, update any expenses using this category to 'Other'
+    final categories = await getAllCategories();
+    final categoryToDelete = categories.firstWhere((cat) => cat.id == id);
+    
+    await db.update(
+      'expenses',
+      {'category': 'Other'},
+      where: 'category = ?',
+      whereArgs: [categoryToDelete.name],
+    );
+    
+    // Then delete the category
+    return await db.delete(
+      'categories',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+  
+  Future<bool> categoryExists(String name) async {
+    final db = await database;
+    final result = await db.query(
+      'categories',
+      where: 'name = ?',
+      whereArgs: [name],
+    );
+    return result.isNotEmpty;
   }
 }
