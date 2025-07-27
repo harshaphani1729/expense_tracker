@@ -1,53 +1,23 @@
-# Expense Tracker Flutter App
+# Expense Tracker
 
-A simple and intuitive expense tracking mobile application built with Flutter.
+A simple and intuitive expense tracking application built with Flutter.
 
 ## Features
 
-- Add, view, and delete expenses
-- Categorize expenses (Food, Transportation, Shopping, etc.)
-- View expense dashboard with category breakdown
-- Swipe to delete expenses
-- Local SQLite database storage
+- ✅ Add, view, and delete expenses
+- 📊 Categorize expenses (Food, Transportation, Shopping, etc.)
+- 📈 View expense dashboard with category breakdown
+- 👆 Swipe to delete expenses
+- 💾 Local SQLite database storage
 
-## Prerequisites
+## Getting Started
 
-Before running this app, you need to install Flutter on your system.
-
-## Flutter Installation (Windows)
-
-1. **Download Flutter SDK**
-   - Go to https://docs.flutter.dev/get-started/install/windows
-   - Download the latest stable Flutter SDK
-   - Extract to `C:\flutter` (or your preferred location)
-
-2. **Add Flutter to PATH**
-   - Open System Properties → Advanced → Environment Variables
-   - Under System Variables, find and select `Path`, then click Edit
-   - Click New and add the path to Flutter bin directory: `C:\flutter\bin`
-
-3. **Install Android Studio** (for Android development)
-   - Download from https://developer.android.com/studio
-   - Install Android SDK and create a virtual device
-
-4. **Verify Installation**
-   ```bash
-   flutter doctor
-   ```
-
-## Running the App
-
-1. **Navigate to project directory**
-   ```bash
-   cd expense_tracker
-   ```
-
-2. **Get dependencies**
+1. **Install dependencies**
    ```bash
    flutter pub get
    ```
 
-3. **Run the app**
+2. **Run the app**
    ```bash
    flutter run
    ```
